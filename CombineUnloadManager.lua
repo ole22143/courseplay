@@ -121,8 +121,13 @@ function CombineUnloadManager:releaseUnloaderFromCombine(unloader,combine)
 	if self.combines[combine] then
 		local ix = self:getUnloaderIndex(unloader, combine)
 		if ix then
+			self:debug('release %s from combine %s (%d)', nameNum(unloader), nameNum(combine), ix)
 			table.remove(self.combines[combine].unloaders, ix)
+		else
+			self:debug('release %s from combine %s: this unloader is not assigned.', nameNum(unloader), nameNum(combine))
 		end
+	else
+		self:debug('release %s from combine %s: can\'t find combine.', nameNum(unloader), nameNum(combine))
 	end
 end
 

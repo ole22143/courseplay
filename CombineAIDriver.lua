@@ -1406,6 +1406,7 @@ function CombineAIDriver:isReadyToUnload()
 	else
 		return false
 	end
+	return true
 end
 
 --- Will not move until unload is done? Unloaders like to know this.

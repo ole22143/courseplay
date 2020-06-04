@@ -86,7 +86,8 @@ CombineUnloadAIDriver.myStates = {
 	FOLLOW_CHOPPER_THROUGH_TURN = {},
 	ALIGN_TO_CHOPPER_AFTER_TURN = {},
 	MOVING_OUT_OF_WAY = {},
-	WAITING_FOR_MANEUVERING_COMBINE = {}
+	WAITING_FOR_MANEUVERING_COMBINE = {},
+	WAITING_FOR_COMBINE_TO_LEAVE = {}
 }
 
 --- Constructor
@@ -319,6 +320,10 @@ function CombineUnloadAIDriver:driveOnField(dt)
 	elseif self.onFieldState == self.states.WAITING_FOR_MANEUVERING_COMBINE then
 
 		self:waitForManeuveringCombine()
+
+	elseif self.onFieldState == self.states.WAITING_FOR_COMBINE_TO_LEAVE then
+
+		self:waitForCombineToLeave()
 
 	elseif self.onFieldState == self.states.MOVING_OUT_OF_WAY then
 
@@ -1629,7 +1634,7 @@ end
 -- Check for full trailer when unloading a combine
 ---@return boolean true when changed to unload course
 ------------------------------------------------------------------------------------------------------------------------
-function CombineUnloadAIDriver:changeToUnloadWhenFull()
+function CombineUnloadAIDriver:shouldChangeToUnload()
 	--when trailer is full then go to unload
 	if self:getDriveUnloadNow() or self:getAllTrailersFull() then
 		if self:getDriveUnloadNow() then
@@ -1637,11 +1642,14 @@ function CombineUnloadAIDriver:changeToUnloadWhenFull()
 		else
 			self:debug('trailer full, changing to unload course.')
 		end
-		self:releaseUnloader()
-		self:startUnloadCourse()
 		return true
 	end
 	return false
+end
+
+function CombineUnloadAIDriver:changeToUnload()
+	self:releaseUnloader()
+	self:startUnloadCourse()
 end
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -1666,6 +1674,25 @@ function CombineUnloadAIDriver:driveToMovingCombine()
 		self:startWaitingForManeuveringCombine()
 	elseif self:isOkToStartUnloadingCombine() then
 		self:startUnloadingCombine()
+	end
+end
+------------------------------------------------------------------------------------------------------------------------
+-- Waiting for combine to leave
+------------------------------------------------------------------------------------------------------------------------
+-- wait until the combine has been moved away and then call onStopWaitingForCombineToLeave
+---@param onStopWaitingForCombineToLeaveFunc function
+function CombineUnloadAIDriver:startWaitingForCombineToLeave(onStopWaitingForCombineToLeaveFunc)
+	self.onStopWaitingForCombineToLeaveFunc = onStopWaitingForCombineToLeaveFunc
+	self:setNewOnFieldState(self.states.WAITING_FOR_COMBINE_TO_LEAVE)
+end
+
+function CombineUnloadAIDriver:waitForCombineToLeave()
+	if self:isWithinSafeManeuveringDistance(self.combineToUnload) then
+		self:debugSparse('waiting for combine to leave')
+		self:setSpeed(0)
+	else
+		self:debug('Stop waiting, combine left')
+		self.onStopWaitingForCombineToLeaveFunc(self)
 	end
 end
 
@@ -1704,7 +1731,10 @@ end
 -- Unload combine (stopped)
 ------------------------------------------------------------------------------------------------------------------------
 function CombineUnloadAIDriver:unloadStoppedCombine()
-	if self:changeToUnloadWhenFull() then return end
+	if self:shouldChangeToUnload() then
+		self:changeToUnload()
+		return
+	end
 	local combineDriver = self.combineToUnload.cp.driver
 	if combineDriver:unloadFinished() then
 		if combineDriver:isWaitingForUnloadAfterCourseEnded() then
@@ -1742,7 +1772,10 @@ function CombineUnloadAIDriver:unloadMovingCombine()
 	self.combineOffset = self:getPipeOffset(self.combineToUnload)
 	self.followCourse:setOffset(-self.combineOffset, 0)
 
-	if self:changeToUnloadWhenFull() then return end
+	if self:shouldChangeToUnload() then
+		self:startWaitingForCombineToLeave(self.changeToUnload)
+		return
+	end
 
 	if self:canDriveBesideCombine(self.combineToUnload) or (self.combineToUnload.cp.driver and self.combineToUnload.cp.driver:isWaitingInPocket()) then
 		self:driveBesideCombine()
