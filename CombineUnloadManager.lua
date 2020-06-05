@@ -161,8 +161,8 @@ function CombineUnloadManager:giveMeACombineToUnload(unloader)
 		end
 	end
 	--then try to find a combine
-	local combine = self:getCombineWithMostFillLevel(unloader)
-	self:debug('Combine with most fill level is %s', combine and combine:getName() or 'N/A')
+	local combine, fillLevelPercentage = self:getCombineWithMostFillLevel(unloader)
+	self:debug('Combine with most fill level (%.1f) is %s', fillLevelPercentage, combine and combine:getName() or 'N/A')
 	local bestUnloader
 	if combine ~= nil and combine.cp.driver:getFieldworkCourse() then
 		if combine.cp.wantsCourseplayer then
@@ -178,7 +178,7 @@ function CombineUnloadManager:giveMeACombineToUnload(unloader)
 			self:debug('Priority closest, best unloader %s', bestUnloader and nameNum(bestUnloader) or 'N/A')
 		end
 		if bestUnloader == unloader then
-			if combine.cp.driver:getFillLevelPercentage() > unloader.cp.driver:getFillLevelThreshold() or
+			if combine.cp.driver:getFillLevelPercentage() >= unloader.cp.driver:getFillLevelThreshold() or
 					combine.cp.driver:willWaitForUnloadToFinish() then
 				self:debug("%s: fill level %.1f, waiting for unload", nameNum(combine), combine.cp.driver:getFillLevelPercentage())
 				self:addUnloaderToCombine(unloader, combine)
@@ -222,7 +222,7 @@ function CombineUnloadManager:getCombineWithMostFillLevel(unloader)
 			end
 		end
 	end
-	return combineToReturn
+	return combineToReturn, mostFillLevel
 end
 
 function CombineUnloadManager:getClosestUnloader(combine)
