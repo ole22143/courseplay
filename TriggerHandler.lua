@@ -1119,7 +1119,7 @@ function TriggerHandler:setDischargeState(superFunc,state, noEventSend)
 	if g_server ~=nil and courseplay:isAIDriverActive(rootVehicle) then
 		local triggerHandler = rootVehicle.cp.driver.triggerHandler
 		if state ~= spec.currentDischargeState then 
-			if state == Dischargeable.DISCHARGE_STATE_OFF and not self..spec_trailer then
+			if state == Dischargeable.DISCHARGE_STATE_OFF and not self.spec_trailer then
 				triggerHandler:resetUnloadingState()
 			end			
 		end
