@@ -274,7 +274,6 @@ function courseplay:updateWorkTools(vehicle, workTool, isImplement)
 				vehicle.cp.workTools[#vehicle.cp.workTools + 1] = workTool;
 			end
 		end; 
-	end
 	-- MODE 3: AUGERWAGON
 	elseif vehicle.cp.mode == 3 then
 		if workTool.cp.isAugerWagon then
