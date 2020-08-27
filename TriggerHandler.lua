@@ -1114,6 +1114,21 @@ function TriggerHandler:onDischargeStateChanged(superFunc,state)
 end
 Pipe.onDischargeStateChanged = Utils.overwrittenFunction(Pipe.onDischargeStateChanged,TriggerHandler.onDischargeStateChanged)
 
+function TriggerHandler:setDischargeState(superFunc,state, noEventSend)
+	local rootVehicle = self:getRootVehicle()
+	if g_server ~=nil and courseplay:isAIDriverActive(rootVehicle) then
+		local triggerHandler = rootVehicle.cp.driver.triggerHandler
+		if state ~= spec.currentDischargeState then 
+			if state == Dischargeable.DISCHARGE_STATE_OFF and not self..spec_trailer then
+				triggerHandler:resetUnloadingState()
+			end			
+		end
+	end
+	return superFunc(self,state,noEventSend)
+end
+Dischargeable.setDischargeState = Utils.overwrittenFunction(Dischargeable.setDischargeState,TriggerHandler.setDischargeState)
+
+
 --Global company....
 
 function TriggerHandler:onActivateObjectGlobalCompany(superFunc)
