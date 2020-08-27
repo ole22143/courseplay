@@ -170,8 +170,12 @@ function TriggerHandler:isNearDischargeNode(object,fillUnitIndex,trigger)
 				self:debugSparse(object,"dischargeNode and TriggerNode distance not okay, continue..!")
 				self.lastDistanceToTrigger = distance
 			end
+		elseif node == nil then 
+			self:debugSparse(object,"dischargeNodeX not found!")
+			return true
 		else 
-			self:debugSparse(object,"dischargeNodeX or TriggerNodeX not found!")
+			self:debugSparse(object,"TriggerNodeX not found!")
+			return true
 		end
 	else 
 		self:debugSparse(object,"dischargeNode or TriggerNode not found!")
