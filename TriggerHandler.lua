@@ -71,6 +71,12 @@ function TriggerHandler:onUpdate(dt)
 			self:updateUnloadingTriggers()
 		end
 	end
+	--temp hack still needs fixing
+	if next(self.triggers) == nil then 
+		if self:isDriveNowActivated() then 
+			self:changeLoadingState(self.states.NOTHING)
+		end
+	end
 end 
 
 function TriggerHandler:onUpdateTick(dt)
